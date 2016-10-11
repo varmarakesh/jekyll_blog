@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Distributed Systems and Software Engineering - Blogging about distributed systems</title>
+    <meta name="description" content="Articles on Distributed Systems and Software Engineering" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="home-template">
+
+    <header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="/">Home</a>
+        <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header class="post-header">
+            <h1 class="post-title">Oracle AWR generation using Python</h1>
+            <section class="post-meta">
+                <time class="post-date" datetime="2015-05-23">23 May 2015</time>
+                
+                    on python
+                
+            </section>
+        </header>
+
+<!--         <header class="post-header">
+            <a id="blog-logo" href="http://localhost:4000">
+                
+                    <span class="blog-title">Distributed Systems and Software Engineering</span>
+                
+            </a>
+        </header> -->
+
+        <!-- <span class="post-meta">
+            <time datetime="2015-05-23">23 May 2015</time>
+            
+                on python
+            
+        </span> -->
+
+        <!-- <h1 class="post-title">Oracle AWR generation using Python</h1> -->
+
+        <section class="post-content">
+            <p>I had to implement a job that involved saving the Oracle performance stats to CSV files on a disk. It was an interesting problem to say the least because speed was a consideration and obviously any technology could be choosen. But I choose python, mainly because python (along with most common libraries) comes automatically shipped on most commercial linux servers.</p>
+
+<p>The full souce code is available [at this link] (https://bitbucket.org/varmarakesh/fullstack/src/0c08ed6ea9e8a7c02ba702775725f60e37dddde4/python/awr/?at=master)</p>
+
+<p>#Oracle AWR</p>
+
+<p>AWR (automatic workload repository) collects and stores all runtime stats generated in Oracle database. It is an effective tool used by database community to troubleshoot and address performance problems. In short all the data related to application sql’s, connections, resource usages, etc is stored in Oracle and is accessible thru a number of views (DBA_HIST_). Since this data tends to be historical, it is grouped by a certain interval and it is known as snapshot.</p>
+
+<p>This gives the list of snapshot Id’s that would group all the stats generated today.  Usually the interval time would be every 30 min or 1 hour.</p>
+
+<figure class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">SELECT</span> 
+	<span class="k">distinct</span> <span class="n">SNAP_ID</span><span class="p">,</span> 
+	<span class="n">to_char</span><span class="p">(</span><span class="n">END_INTERVAL_TIME</span><span class="p">,</span> <span class="s1">&#39;hh24:mi_dd_mon_yy&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="ss">&quot;END_INTERVAL_TIME&quot;</span> 
+<span class="k">FROM</span> 
+	<span class="n">DBA_HIST_SNAPSHOT</span> 
+<span class="k">WHERE</span> 
+	<span class="n">TRUNC</span><span class="p">(</span><span class="n">END_INTERVAL_TIME</span><span class="p">)</span> <span class="o">=</span> <span class="n">TRUNC</span><span class="p">(</span><span class="n">SYSDATE</span><span class="p">)</span> 
+<span class="k">ORDER</span> <span class="k">BY</span> 
+	<span class="n">SNAP_ID</span></code></pre></figure>
+
+<p>Once there is the list of snapshot Id’s, we can get the runtime stats for all the sql’s in the specific snapshot using this query like this.</p>
+
+<figure class="highlight"><pre><code class="language-sql" data-lang="sql"><span class="k">SELECT</span>
+                     <span class="n">D</span><span class="p">.</span><span class="n">NAME</span><span class="p">,</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">SNAP_ID</span><span class="p">,</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">INSTANCE_NUMBER</span><span class="p">,</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">SQL_ID</span><span class="p">,</span>
+                     <span class="n">ST</span><span class="p">.</span><span class="n">SQL_TEXT</span><span class="p">,</span>
+                     <span class="n">MODULE</span><span class="p">,</span>
+                     <span class="n">ACTION</span><span class="p">,</span>
+                     <span class="n">PARSING_SCHEMA_NAME</span><span class="p">,</span>
+                     <span class="n">FETCHES_TOTAL</span><span class="p">,</span>
+                     <span class="n">SORTS_TOTAL</span><span class="p">,</span>
+                     <span class="n">EXECUTIONS_TOTAL</span><span class="p">,</span>
+                     <span class="n">LOADS_TOTAL</span><span class="p">,</span>
+                     <span class="n">PARSE_CALLS_TOTAL</span><span class="p">,</span>
+                     <span class="n">DISK_READS_TOTAL</span><span class="p">,</span>
+                     <span class="n">BUFFER_GETS_TOTAL</span><span class="p">,</span>
+                     <span class="n">ROWS_PROCESSED_TOTAL</span><span class="p">,</span>
+                     <span class="n">CPU_TIME_TOTAL</span><span class="p">,</span>
+                     <span class="n">IOWAIT_TOTAL</span><span class="p">,</span>
+                     <span class="n">ELAPSED_TIME_TOTAL</span>
+                    <span class="k">FROM</span>
+                     <span class="n">DBA_HIST_SQLSTAT</span> <span class="n">SS</span><span class="p">,</span>
+                     <span class="n">DBA_HIST_SNAPSHOT</span> <span class="n">SP</span><span class="p">,</span>
+                     <span class="n">DBA_HIST_SQLTEXT</span> <span class="n">ST</span><span class="p">,</span>
+                     <span class="n">V</span><span class="err">$</span><span class="k">DATABASE</span> <span class="n">D</span>
+                    <span class="k">WHERE</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">SNAP_ID</span> <span class="o">=</span> <span class="n">SP</span><span class="p">.</span><span class="n">SNAP_ID</span> <span class="k">AND</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">DBID</span> <span class="o">=</span> <span class="n">SP</span><span class="p">.</span><span class="n">DBID</span> <span class="k">AND</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">DBID</span> <span class="o">=</span> <span class="n">D</span><span class="p">.</span><span class="n">DBID</span> <span class="k">AND</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">INSTANCE_NUMBER</span> <span class="o">=</span> <span class="n">SP</span><span class="p">.</span><span class="n">INSTANCE_NUMBER</span> <span class="k">AND</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">DBID</span> <span class="o">=</span> <span class="n">ST</span><span class="p">.</span><span class="n">DBID</span> <span class="k">AND</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">SQL_ID</span> <span class="o">=</span> <span class="n">ST</span><span class="p">.</span><span class="n">SQL_ID</span> <span class="k">AND</span>
+                     <span class="n">SS</span><span class="p">.</span><span class="n">SNAP_ID</span> <span class="o">=</span> <span class="p">:</span><span class="n">SNAP_ID</span></code></pre></figure>
+
+<p>#Save Results to a CSV File</p>
+
+<p>So, basically need to get the details snapshot details iteratively and save the results to a local CSV File. I used the csv module in python for it.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">csv</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">getOracleConnection</span><span class="p">()</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">q_awr</span><span class="p">,</span> <span class="p">[</span><span class="n">snap</span><span class="p">[</span><span class="s">&#39;snap_id&#39;</span><span class="p">]])</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s">&quot;wb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csv_file</span><span class="p">:</span>
+            <span class="n">csv_writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">csv_file</span><span class="p">)</span>
+            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">cursor</span><span class="o">.</span><span class="n">description</span><span class="p">])</span> <span class="c"># write headers</span>
+            <span class="n">csv_writer</span><span class="o">.</span><span class="n">writerows</span><span class="p">(</span><span class="n">cursor</span><span class="p">)</span>
+        <span class="n">cursor</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></code></pre></figure>
+
+<p>#Multi-threading</p>
+
+<p>So, the need is issue Oracle queries multiple times (once every snapshot) and save the results in multiple CSV files (once file per snapshot). This is a classic IO bound problem, because, the program issues a database call, waits for the response, save the data to disk, then makes another call and so on. So, I implemented threading and you can in the end that the performance gain using threading is pretty amazing.</p>
+
+<p>So, get a list of snapshots, then spawn a thread for each snapshot. Each thread spawn invokes a method called save_awr to get the snapshot details and saves the results to a file.</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">generate_awr_multithreads</span><span class="p">():</span>
+    <span class="n">snapshots</span> <span class="o">=</span> <span class="n">get_snapshots</span><span class="p">()</span>
+    <span class="n">threads</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">requestcount</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">snapshots</span><span class="o">.</span><span class="n">__len__</span><span class="p">()):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span> <span class="o">=</span> <span class="n">save_awr</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">[</span><span class="n">snapshots</span><span class="p">[</span><span class="n">requestcount</span><span class="p">]])</span>
+        <span class="n">threads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">threads</span><span class="p">:</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></code></pre></figure>
+
+<p>This program saves the results to file system.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nv">$ </span>ls -lrt AWR*.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    86K May <span class="m">25</span> 12:08 AWR_DLINKD_5074_10:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    85K May <span class="m">25</span> 12:08 AWR_DLINKD_5075_11:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    93K May <span class="m">25</span> 12:08 AWR_DLINKD_5076_12:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    81K May <span class="m">25</span> 12:09 AWR_DLINKD_5064_00:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    78K May <span class="m">25</span> 12:09 AWR_DLINKD_5065_01:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    85K May <span class="m">25</span> 12:10 AWR_DLINKD_5066_02:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    81K May <span class="m">25</span> 12:10 AWR_DLINKD_5067_03:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff   196K May <span class="m">25</span> 12:11 AWR_DLINKD_5068_04:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    87K May <span class="m">25</span> 12:11 AWR_DLINKD_5069_05:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff   111K May <span class="m">25</span> 12:12 AWR_DLINKD_5070_06:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    86K May <span class="m">25</span> 12:12 AWR_DLINKD_5071_07:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    95K May <span class="m">25</span> 12:13 AWR_DLINKD_5072_08:00_25_may_15.csv
+-rw-r--r--  <span class="m">1</span> rakesh.varma  staff    56K May <span class="m">25</span> 12:13 AWR_DLINKD_5073_09:00_25_may_15.csv</code></pre></figure>
+
+<p>If multi-threading could not be implemented, this is how a single threaded version would like.</p>
+
+<p>#Single Thread</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">generate_awr_singlethread</span><span class="p">():</span>
+    <span class="n">snapshots</span> <span class="o">=</span> <span class="n">get_snapshots</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">requestcount</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">snapshots</span><span class="o">.</span><span class="n">__len__</span><span class="p">()):</span>
+        <span class="n">save_awr</span><span class="p">(</span><span class="n">snap</span> <span class="o">=</span> <span class="n">snapshots</span><span class="p">[</span><span class="n">requestcount</span><span class="p">])</span></code></pre></figure>
+
+<p>#Conclusion</p>
+
+<p>Elapsed time differences between multi-threading and single threaded versions are very stark because this is a classic example of an IO bound problem.  Oracle connections and saving the AWR data to disk are two IO bound tasks. Saving the AWR data is very IO intensive given the volume of data. These are the results when I ran this script against my database.</p>
+<p> @timefn:generate_awr_multithreads took 58.2649428844 seconds </p>
+<p> @timefn:generate_awr_singlethread took 361.62610507 seconds </p>
+
+<p>Please check the source at https://bitbucket.org/varmarakesh/fullstack/src and let me know the feedback. Anybody that has an Oracle client installed, the setup is quite minimal and it will work without issues.</p>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+            <!-- If we want to display author's name and bio -->
+            
+                <figure class="author-image">
+                    <a class="img" href="/" style="background-image: url(/assets/images/profile.png)">
+                    <span class="hidden">Rakesh Varma's Picture</span></a>
+                </figure>
+                <section class="author">
+                    <!-- Author Name -->
+                    <h4> Rakesh Varma </h4>
+                    <!-- Author Bio -->
+                    <p>
+                    
+                    </p>
+                </section>
+            
+
+            <!-- Share links section -->
+            <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?text=Oracle AWR generation using Python&amp;url=http://distributedpassions.com/python/2015/05/23/Oracle-AWR-Using-Python.html"
+        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://distributedpassions.com/python/2015/05/23/Oracle-AWR-Using-Python.html"
+        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://distributedpassions.com/python/2015/05/23/Oracle-AWR-Using-Python.html"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+
+            <!-- Disqus comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+    <footer class="site-footer clearfix">
+      <section class="copyright">
+        <a href="/">Distributed Systems and Software Engineering</a> &copy; 
+               &bull; All rights reserved.
+      </section>
+      <section class="poweredby">Made with Jekyll using 
+        <a href="http://github.com/rosario/kasper">Kasper theme</a>
+      </section>
+    </footer>
+    
+    <script type="text/javascript" src="/assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>   
+    
+<!-- Add Disqus comments. -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'rakeshsoftwareengineeringblog';
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+
+</body>
+</html>

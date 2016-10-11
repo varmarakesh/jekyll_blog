@@ -1,0 +1,16 @@
+name: Distributed Systems and Software Engineering
+description: Blogging about distributed systems
+meta_description: "Articles on Distributed Systems and Software Engineering"
+
+markdown: kramdown
+highlighter: pygments
+logo: false
+paginate: 15
+baseurl: /
+domain_name: 'http://distributedpassions.com'
+google_analytics: 'UA-XXXXXXXX-X'
+gems: [jekyll-paginate]
+
+# Details for the RSS feed generator
+url:            'blog url'
+author:         'Rakesh Varma'

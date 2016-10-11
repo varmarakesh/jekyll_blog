@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+
+    <title>Distributed Systems and Software Engineering - Blogging about distributed systems</title>
+    <meta name="description" content="Articles on Distributed Systems and Software Engineering" />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="MobileOptimized" content="320" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <!-- Customisation  -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/main.css" />
+
+</head>
+<body class="home-template">
+
+    <header class="main-header post-head no-cover">
+    <nav class="main-nav  clearfix">
+        <a class="back-button icon-arrow-left" href="/">Home</a>
+        <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post">
+
+        <header class="post-header">
+            <h1 class="post-title">Java vs Python Performance</h1>
+            <section class="post-meta">
+                <time class="post-date" datetime="2015-07-04">04 Jul 2015</time>
+                
+                    on python
+                
+            </section>
+        </header>
+
+<!--         <header class="post-header">
+            <a id="blog-logo" href="http://localhost:4000">
+                
+                    <span class="blog-title">Distributed Systems and Software Engineering</span>
+                
+            </a>
+        </header> -->
+
+        <!-- <span class="post-meta">
+            <time datetime="2015-07-04">04 Jul 2015</time>
+            
+                on python
+            
+        </span> -->
+
+        <!-- <h1 class="post-title">Java vs Python Performance</h1> -->
+
+        <section class="post-content">
+            <p>It is well known that Python programs tend to run slower compared to Java, C#.net, C++. This post attempts to demonstrate the fact. I have taken a classic CPU bound problem, generate nth prime number, implemented a python solution and java solution based on the same algorithm.</p>
+
+<p>Java implementation source code is available [at this link] (https://bitbucket.org/varmarakesh/fullstack/src/c20824f57249970c75bf457ba7aade7c42f4d3ac/java/threading_test/src/ThreadTest.java?at=master)</p>
+
+<p>Python implementation source code is available [at this link] (https://bitbucket.org/varmarakesh/fullstack/src/c20824f57249970c75bf457ba7aade7c42f4d3ac/python/threading/testprime.py?at=master)</p>
+
+<p>Java Single Thread Test took 127 milli seconds.</p>
+
+<p>Python Single Thread Test took 4.8 seconds.</p>
+
+<p>The difference is quite stark, python performs 35 times worse. I’ve learnt that to perform performance benchmarking of different languages, need to try them on CPU bound problems. Think of CPU bound problems as one that have heavy looping, sorting, floating point operations and they have no IO (databases, file reads, network, etc). If you program contains IO operations, then it is not usually suitable for a good benchmark test because IO time will consume a significant execution time and IO execution time(database call or a web service call) is usually the same regardless of the python or java implementation.</p>
+
+<p>#Conclusion</p>
+
+<ol>
+  <li>It is very hard to beat the complied implementations of these CPU bound, iterative numerical calculations.</li>
+  <li>Python most selling features that evolve around developer productivity. But this kind of a large scale iterative mathematical operations come with a cost. The python solution was run on the cPython, the default implementation of python. However, using cython, pypy or even numpy would offer significant performance benefits.</li>
+  <li>I have include a test for multi-threading also. Since python uses GIL (global interpretor lock), the multi-threaded implementation actually perform worse than the single threaded implementation. However, for Java it is not the case.</li>
+</ol>
+
+        </section>
+
+        
+
+        <footer class="post-footer">
+            <!-- If we want to display author's name and bio -->
+            
+                <figure class="author-image">
+                    <a class="img" href="/" style="background-image: url(/assets/images/profile.png)">
+                    <span class="hidden">Rakesh Varma's Picture</span></a>
+                </figure>
+                <section class="author">
+                    <!-- Author Name -->
+                    <h4> Rakesh Varma </h4>
+                    <!-- Author Bio -->
+                    <p>
+                    
+                    </p>
+                </section>
+            
+
+            <!-- Share links section -->
+            <section class="share">
+    <h4>Share this post</h4>
+    <a class="icon-twitter" href="http://twitter.com/share?text=Java vs Python Performance&amp;url=http://distributedpassions.com/python/2015/07/04/Java-vs-Python-Performance.html"
+        onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+        <span class="hidden">Twitter</span>
+    </a>
+    <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://distributedpassions.com/python/2015/07/04/Java-vs-Python-Performance.html"
+        onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+        <span class="hidden">Facebook</span>
+    </a>
+    <a class="icon-google-plus" href="https://plus.google.com/share?url=http://distributedpassions.com/python/2015/07/04/Java-vs-Python-Performance.html"
+       onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+        <span class="hidden">Google+</span>
+    </a>
+</section>
+
+            <!-- Disqus comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+    <footer class="site-footer clearfix">
+      <section class="copyright">
+        <a href="/">Distributed Systems and Software Engineering</a> &copy; 
+               &bull; All rights reserved.
+      </section>
+      <section class="poweredby">Made with Jekyll using 
+        <a href="http://github.com/rosario/kasper">Kasper theme</a>
+      </section>
+    </footer>
+    
+    <script type="text/javascript" src="/assets/js/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Google Analytics Tracking code -->
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-XXXXXXXX-X']);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>   
+    
+<!-- Add Disqus comments. -->
+<div id="disqus_thread"></div>
+<script type="text/javascript">
+    /* * * CONFIGURATION VARIABLES * * */
+    var disqus_shortname = 'rakeshsoftwareengineeringblog';
+    
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+        var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript" rel="nofollow">comments powered by Disqus.</a></noscript>
+
+
+
+</body>
+</html>
