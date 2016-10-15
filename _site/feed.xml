@@ -5,9 +5,116 @@
     <description>Blogging about distributed systems</description>
     <link>http://localhost:4000//</link>
     <atom:link href="http://localhost:4000//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Tue, 11 Oct 2016 10:47:50 -0400</pubDate>
-    <lastBuildDate>Tue, 11 Oct 2016 10:47:50 -0400</lastBuildDate>
+    <pubDate>Sat, 15 Oct 2016 11:57:42 -0400</pubDate>
+    <lastBuildDate>Sat, 15 Oct 2016 11:57:42 -0400</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
+    
+      <item>
+        <title>Micro-services</title>
+        <description>&lt;p&gt;Micro-services design is really helping alleviate some problems we experienced with the monolithic model. Implementing micro-services is perhaps one of the greatest ways to improve the producitivity of a software engineering team.&lt;/p&gt;
+
+&lt;p&gt;Specifically,&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;You deploy only the component that was changed (as opposed to the whole application), this keeps the deployments and the tests managable.&lt;/li&gt;
+  &lt;li&gt;If multiple team members are working on the application, they need to wait until everyone is done with development, testing and ready to move forward. However, with microservices-services model, whenever each piece of functionality is ready it could be deployed.&lt;/li&gt;
+  &lt;li&gt;Each micro-service runs in its own process space, so if we want to scale for any reason, we can scale the particular micro-service that needs more resources instead of 	scaling the entire application.&lt;/li&gt;
+  &lt;li&gt;When one micro-service needs to communicate with other other micro-service, it does using a lightweight protocol such as http.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;This post examines, how to deploy microservices created using python and django on nginx and uwsgi.&lt;/p&gt;
+
+&lt;p&gt;Before going into the details of a microservices design, lets understand and examine how a typical monolithic application looks like.&lt;/p&gt;
+
+&lt;h5 id=&quot;monolithic-design&quot;&gt;Monolithic Design&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/monolithic_service_design.png&quot; alt=&quot;monolithic-design&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;However, with breaking the functionality into logically isolated micro-services, this is how the design would like.&lt;/p&gt;
+
+&lt;h5 id=&quot;microservices-design&quot;&gt;Microservices Design&lt;/h5&gt;
+&lt;p&gt;&lt;img src=&quot;/assets/images/microservice_design.png&quot; alt=&quot;microservices-design&quot; class=&quot;img-responsive&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now, lets examine how the configuration would like for a python and django application that runs on nginx on a typical linux server.&lt;/p&gt;
+
+&lt;p&gt;Because the application code is spread across multiple repos (or subrepos) grouped by logically independent code, this will be the typical organization of the application directories on the server.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;ec2-user@ip-172-31-34-107 www&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;pwd&lt;/span&gt;
+/opt/www
+&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;ec2-user@ip-172-31-34-107 www&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ls -lrt
+total 8
+drwxr-xr-x. &lt;span class=&quot;m&quot;&gt;5&lt;/span&gt; root root &lt;span class=&quot;m&quot;&gt;4096&lt;/span&gt; Oct &lt;span class=&quot;m&quot;&gt;12&lt;/span&gt; 14:09 microservice1
+drwxr-xr-x. &lt;span class=&quot;m&quot;&gt;7&lt;/span&gt; root root &lt;span class=&quot;m&quot;&gt;4096&lt;/span&gt; Oct &lt;span class=&quot;m&quot;&gt;12&lt;/span&gt; 19:00 microservice2
+drwxr-xr-x. &lt;span class=&quot;m&quot;&gt;5&lt;/span&gt; root root &lt;span class=&quot;m&quot;&gt;4096&lt;/span&gt; Oct &lt;span class=&quot;m&quot;&gt;12&lt;/span&gt; 14:09 microservice3
+drwxr-xr-x. &lt;span class=&quot;m&quot;&gt;7&lt;/span&gt; root root &lt;span class=&quot;m&quot;&gt;4096&lt;/span&gt; Oct &lt;span class=&quot;m&quot;&gt;12&lt;/span&gt; 19:00 microservice4&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Nginx, which is typically deployed a front-end gateway or a reverse proxy will have the this configuration.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;&lt;span class=&quot;o&quot;&gt;[&lt;/span&gt;ec2-user@ip-172-31-34-107 serviceA&lt;span class=&quot;o&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;cat /etc/nginx/conf.d/service.conf 
+upstream django1 &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    server unix:///opt/www/service1/uwsgi.sock&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# for a file socket&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+upstream django2 &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    server unix:///opt/www/service2/uwsgi.sock&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# for a file socket&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+upstream django3 &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    server unix:///opt/www/service3/uwsgi.sock&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# for a file socket&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+upstream django4 &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    server unix:///opt/www/service4/uwsgi.sock&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;c&quot;&gt;# for a file socket&lt;/span&gt;
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+server &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# the port your site will be served on&lt;/span&gt;
+    listen      80&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    &lt;span class=&quot;c&quot;&gt;# the domain name it will serve for&lt;/span&gt;
+    server_name localhost&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+    charset     utf-8&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+
+    &lt;span class=&quot;c&quot;&gt;# max upload size&lt;/span&gt;
+    client_max_body_size 75M&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;   &lt;span class=&quot;c&quot;&gt;# adjust to taste&lt;/span&gt;
+
+    location /api/service1/ &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+	    uwsgi_pass  django1&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+	    include     /etc/nginx/uwsgi_params&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ 
+   location /api/service2/ &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            uwsgi_pass  django2&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            include     /etc/nginx/uwsgi_params&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+
+    location /api/service3/ &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+	    uwsgi_pass  django3&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+	    include     /etc/nginx/uwsgi_params&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+    &lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;
+ 
+   location /api/service4/ &lt;span class=&quot;o&quot;&gt;{&lt;/span&gt;
+            uwsgi_pass  django4&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+            include     /etc/nginx/uwsgi_params&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; 
+&lt;span class=&quot;o&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;Multiple uWSGI process have to be created that would process the request for each microservice.&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-bash&quot; data-lang=&quot;bash&quot;&gt;/usr/bin/uwsgi --socket&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service1/uwsgi.sock --module&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;microservice-test.wsgi --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; --chdir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service1
+
+/usr/bin/uwsgi --socket&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service2/uwsgi.sock --module&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;microservice-test.wsgi --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; --chdir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service2
+
+/usr/bin/uwsgi --socket&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service3/uwsgi.sock --module&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;microservice-test.wsgi --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; --chdir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service3
+
+/usr/bin/uwsgi --socket&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service4/uwsgi.sock --module&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;microservice-test.wsgi --master&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;true&lt;/span&gt; --chdir&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/www/service4&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+</description>
+        <pubDate>Wed, 12 Oct 2016 11:34:11 -0400</pubDate>
+        <link>http://localhost:4000//services/2016/10/12/microservices.html</link>
+        <guid isPermaLink="true">http://localhost:4000//services/2016/10/12/microservices.html</guid>
+        
+        
+        <category>services</category>
+        
+      </item>
     
       <item>
         <title>High Availability for MongoDB</title>
