@@ -5,8 +5,8 @@
     <description>Blogging about distributed systems</description>
     <link>http://localhost:4000//</link>
     <atom:link href="http://localhost:4000//feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Sat, 15 Oct 2016 11:57:42 -0400</pubDate>
-    <lastBuildDate>Sat, 15 Oct 2016 11:57:42 -0400</lastBuildDate>
+    <pubDate>Sun, 20 Nov 2016 10:38:33 -0500</pubDate>
+    <lastBuildDate>Sun, 20 Nov 2016 10:38:33 -0500</lastBuildDate>
     <generator>Jekyll v3.3.0</generator>
     
       <item>
@@ -256,9 +256,9 @@ db.getMongo&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&
         <title>Java vs Python Performance</title>
         <description>&lt;p&gt;It is well known that Python programs tend to run slower compared to Java, C#.net, C++. This post attempts to demonstrate the fact. I have taken a classic CPU bound problem, generate nth prime number, implemented a python solution and java solution based on the same algorithm.&lt;/p&gt;
 
-&lt;p&gt;Java implementation source code is available [at this link] (https://bitbucket.org/varmarakesh/fullstack/src/c20824f57249970c75bf457ba7aade7c42f4d3ac/java/threading_test/src/ThreadTest.java?at=master)&lt;/p&gt;
+&lt;p&gt;Java implementation source code is available &lt;a href=&quot;https://bitbucket.org/varmarakesh/fullstack/src/c20824f57249970c75bf457ba7aade7c42f4d3ac/java/threading_test/src/ThreadTest.java?at=master&quot;&gt;at this link&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;Python implementation source code is available [at this link] (https://bitbucket.org/varmarakesh/fullstack/src/c20824f57249970c75bf457ba7aade7c42f4d3ac/python/threading/testprime.py?at=master)&lt;/p&gt;
+&lt;p&gt;Python implementation source code is available &lt;a href=&quot;https://bitbucket.org/varmarakesh/fullstack/src/c20824f57249970c75bf457ba7aade7c42f4d3ac/python/threading/testprime.py?at=master&quot;&gt;at this link&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;Java Single Thread Test took 127 milli seconds.&lt;/p&gt;
 
@@ -266,13 +266,13 @@ db.getMongo&lt;span class=&quot;o&quot;&gt;()&lt;/span&gt;&lt;/code&gt;&lt;/pre&
 
 &lt;p&gt;The difference is quite stark, python performs 35 times worse. I’ve learnt that to perform performance benchmarking of different languages, need to try them on CPU bound problems. Think of CPU bound problems as one that have heavy looping, sorting, floating point operations and they have no IO (databases, file reads, network, etc). If you program contains IO operations, then it is not usually suitable for a good benchmark test because IO time will consume a significant execution time and IO execution time(database call or a web service call) is usually the same regardless of the python or java implementation.&lt;/p&gt;
 
-&lt;p&gt;#Conclusion&lt;/p&gt;
-
+&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;/h2&gt;
 &lt;ol&gt;
   &lt;li&gt;It is very hard to beat the complied implementations of these CPU bound, iterative numerical calculations.&lt;/li&gt;
   &lt;li&gt;Python most selling features that evolve around developer productivity. But this kind of a large scale iterative mathematical operations come with a cost. The python solution was run on the cPython, the default implementation of python. However, using cython, pypy or even numpy would offer significant performance benefits.&lt;/li&gt;
   &lt;li&gt;I have include a test for multi-threading also. Since python uses GIL (global interpretor lock), the multi-threaded implementation actually perform worse than the single threaded implementation. However, for Java it is not the case.&lt;/li&gt;
 &lt;/ol&gt;
+
 </description>
         <pubDate>Sat, 04 Jul 2015 11:34:11 -0400</pubDate>
         <link>http://localhost:4000//python/2015/07/04/Java-vs-Python-Performance.html</link>
